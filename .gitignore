@@ -1,5 +1,5 @@
 # Python virtual enviroments
-.env/
+.venv/
 venv/
 
 # Python generated files
