@@ -1,8 +1,30 @@
+from typing import Protocol
+
 from academic_tracking.student import Student
 
 
+class StudentRepository(Protocol):
+    """Define the contract for student repositories."""
+
+    def save(self, student: Student) -> None:
+        """Save a student."""
+        ...
+
+    def find_by_id(self, student_id: int) -> Student | None:
+        """Find a student by its identifier."""
+        ...
+
+    def find_all(self) -> list[Student]:
+        """Return all students."""
+        ...
+
+    def find_by_last_name(self, last_name: str) -> list[Student]:
+        """Find students by last name."""
+        ...
+
+
 class InMemoryStudentRepository:
-    """Store student in memory."""
+    """Store students in memory."""
 
     def __init__(self) -> None:
         self._students: dict[int, Student] = {}

@@ -1,7 +1,10 @@
 import pytest
 
 from academic_tracking.student import Student
-from academic_tracking.student_repository import InMemoryStudentRepository
+from academic_tracking.student_repository import (
+    InMemoryStudentRepository,
+    StudentRepository,
+)
 
 
 def test_repository_saves_and_finds_student_by_id() -> None:
@@ -133,3 +136,17 @@ def test_repository_empty_list_when_last_name_is_not_found() -> None:
     found_students = repository.find_by_last_name("Benitez")
 
     assert found_students == []
+
+
+def test_in_memory_repository_satisfies_protocol() -> None:
+    repository: StudentRepository = InMemoryStudentRepository()
+    student = Student(
+        student_id=1,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+
+    repository.save(student)
+
+    assert repository.find_by_id(1) == student
