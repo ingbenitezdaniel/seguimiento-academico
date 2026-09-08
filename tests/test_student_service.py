@@ -116,3 +116,65 @@ def test_service_returns_empty_list_when_no_students_are_registered() -> None:
     students = service.list_students()
 
     assert students == []
+
+
+def test_service_updates_existing_student() -> None:
+    repository = InMemoryStudentRepository()
+    service = StudentService(repository)
+    service.register_student(
+        student_id=1,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+
+    updated_student = service.update_student(
+        student_id=1,
+        first_name="Ana Maria",
+        last_name="Garcia",
+        email="ana.maria.garcia@example.com",
+    )
+
+    assert updated_student == Student(
+        student_id=1,
+        first_name="Ana Maria",
+        last_name="Garcia",
+        email="ana.maria.garcia@example.com",
+    )
+    assert repository.find_by_id(1) == updated_student
+
+
+def test_service_rejects_update_for_nonexistent_student() -> None:
+    repository = InMemoryStudentRepository()
+    service = StudentService(repository)
+
+    with pytest.raises(StudentNotFoundError, match="Student with id 999 was not found"):
+        service.update_student(
+            student_id=999,
+            first_name="Ana",
+            last_name="Garcia",
+            email="ana.garcia@example.com",
+        )
+
+    assert repository.find_all() == []
+
+
+def test_service_preserves_student_when_update_data_is_invalid() -> None:
+    repository = InMemoryStudentRepository()
+    service = StudentService(repository)
+    original_student = service.register_student(
+        student_id=1,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+
+    with pytest.raises(ValueError, match="Email address is invalid"):
+        service.update_student(
+            student_id=1,
+            first_name="Ana",
+            last_name="Garcia",
+            email="invalid-email",
+        )
+
+    assert repository.find_by_id(1) == original_student

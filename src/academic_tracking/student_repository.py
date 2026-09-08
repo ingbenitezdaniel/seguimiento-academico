@@ -22,6 +22,10 @@ class StudentRepository(Protocol):
         """Find students by last name."""
         ...
 
+    def update(self, student: Student) -> None:
+        """Update an existing student."""
+        ...
+
 
 class InMemoryStudentRepository:
     """Store students in memory."""
@@ -51,3 +55,10 @@ class InMemoryStudentRepository:
             for student in self._students.values()
             if student.last_name == last_name
         ]
+
+    def update(self, student: Student) -> None:
+        """Update an existing student."""
+        if student.student_id not in self._students:
+            raise ValueError(f"Student with id {student.student_id} does not exist")
+
+        self._students[student.student_id] = student
