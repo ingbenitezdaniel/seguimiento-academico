@@ -61,3 +61,8 @@ class StudentService:
         self._repository.update(updated_student)
 
         return updated_student
+
+    def delete_student(self, student_id: int) -> None:
+        """Delete an existing student."""
+        self.get_student_by_id(student_id)
+        self._repository.delete(student_id)

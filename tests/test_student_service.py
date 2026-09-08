@@ -178,3 +178,32 @@ def test_service_preserves_student_when_update_data_is_invalid() -> None:
         )
 
     assert repository.find_by_id(1) == original_student
+
+
+def test_service_deletes_existing_student() -> None:
+    repository = InMemoryStudentRepository()
+    service = StudentService(repository)
+    service.register_student(
+        student_id=1,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+
+    service.delete_student(1)
+
+    assert repository.find_by_id(1) is None
+    assert service.list_students() == []
+
+
+def test_service_rejects_delete_for_nonexistent_student() -> None:
+    repository = InMemoryStudentRepository()
+    service = StudentService(repository)
+
+    with pytest.raises(
+        StudentNotFoundError,
+        match="Student with id 999 was not found",
+    ):
+        service.delete_student(999)
+
+    assert repository.find_all() == []

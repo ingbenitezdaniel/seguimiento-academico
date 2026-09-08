@@ -165,3 +165,27 @@ def test_repository_rejects_update_for_nonexistent_student() -> None:
         repository.update(student)
 
     assert repository.find_all() == []
+
+
+def test_repository_deletes_existing_student() -> None:
+    repository: StudentRepository = InMemoryStudentRepository()
+    student = Student(
+        student_id=1,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+    repository.save(student)
+
+    repository.delete(1)
+
+    assert repository.find_by_id(1) is None
+
+
+def test_repository_rejects_delete_for_nonexistent_student() -> None:
+    repository: StudentRepository = InMemoryStudentRepository()
+
+    with pytest.raises(ValueError, match="Student with id 999 does not exist"):
+        repository.delete(999)
+
+    assert repository.find_all() == []
