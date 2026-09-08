@@ -1,3 +1,4 @@
+from academic_tracking.exceptions import StudentNotFoundError
 from academic_tracking.student import Student
 from academic_tracking.student_repository import StudentRepository
 
@@ -26,3 +27,16 @@ class StudentService:
         self._repository.save(student)
 
         return student
+
+    def get_student_by_id(self, student_id: int) -> Student:
+        """Return a student by identifier."""
+        student = self._repository.find_by_id(student_id)
+
+        if student is None:
+            raise StudentNotFoundError(f"Student with id {student_id} was not found")
+
+        return student
+
+    def list_students(self) -> list[Student]:
+        """Return all registered students."""
+        return self._repository.find_all()
