@@ -150,3 +150,18 @@ def test_in_memory_repository_satisfies_protocol() -> None:
     repository.save(student)
 
     assert repository.find_by_id(1) == student
+
+
+def test_repository_rejects_update_for_nonexistent_student() -> None:
+    repository: StudentRepository = InMemoryStudentRepository()
+    student = Student(
+        student_id=999,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+
+    with pytest.raises(ValueError, match="Student with id 999 does not exist"):
+        repository.update(student)
+
+    assert repository.find_all() == []
