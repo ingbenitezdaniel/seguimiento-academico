@@ -26,6 +26,10 @@ class StudentRepository(Protocol):
         """Update an existing student."""
         ...
 
+    def delete(self, student_id: int) -> None:
+        """Delete an existing student."""
+        ...
+
 
 class InMemoryStudentRepository:
     """Store students in memory."""
@@ -62,3 +66,10 @@ class InMemoryStudentRepository:
             raise ValueError(f"Student with id {student.student_id} does not exist")
 
         self._students[student.student_id] = student
+
+    def delete(self, student_id: int) -> None:
+        """Delete an existing student."""
+        if student_id not in self._students:
+            raise ValueError(f"Student with id {student_id} does not exist")
+
+        del self._students[student_id]
