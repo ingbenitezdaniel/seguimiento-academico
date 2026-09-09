@@ -7,8 +7,9 @@ from academic_tracking.student_repository import (
 )
 
 
-def test_repository_saves_and_finds_student_by_id() -> None:
-    repository = InMemoryStudentRepository()
+def test_repository_saves_and_finds_student_by_id(
+    repository: InMemoryStudentRepository,
+) -> None:
     student = Student(
         student_id=1,
         first_name="Ana",
@@ -23,16 +24,17 @@ def test_repository_saves_and_finds_student_by_id() -> None:
     assert found_student == student
 
 
-def test_repository_returns_none_when_student_does_not_exist() -> None:
-    repository = InMemoryStudentRepository()
-
+def test_repository_returns_none_when_student_does_not_exist(
+    repository: InMemoryStudentRepository,
+) -> None:
     found_student = repository.find_by_id(999)
 
     assert found_student is None
 
 
-def test_repository_rejects_duplicate_student_id() -> None:
-    repository = InMemoryStudentRepository()
+def test_repository_rejects_duplicate_student_id(
+    repository: InMemoryStudentRepository,
+) -> None:
     first_student = Student(
         student_id=1,
         first_name="Ana",
@@ -54,8 +56,7 @@ def test_repository_rejects_duplicate_student_id() -> None:
     assert repository.find_by_id(1) == first_student
 
 
-def test_repository_returns_all_students() -> None:
-    repository = InMemoryStudentRepository()
+def test_repository_returns_all_students(repository: InMemoryStudentRepository) -> None:
     first_student = Student(
         student_id=1,
         first_name="Ana",
@@ -77,8 +78,9 @@ def test_repository_returns_all_students() -> None:
     assert students == [first_student, second_student]
 
 
-def test_repository_find_all_returns_independent_list() -> None:
-    repository = InMemoryStudentRepository()
+def test_repository_find_all_returns_independent_list(
+    repository: InMemoryStudentRepository,
+) -> None:
     student = Student(
         student_id=1,
         first_name="Ana",
@@ -93,8 +95,9 @@ def test_repository_find_all_returns_independent_list() -> None:
     assert repository.find_all() == [student]
 
 
-def test_repository_finds_students_by_last_name() -> None:
-    repository = InMemoryStudentRepository()
+def test_repository_finds_students_by_last_name(
+    repository: InMemoryStudentRepository,
+) -> None:
     ana = Student(
         student_id=1,
         first_name="Ana",
@@ -123,8 +126,9 @@ def test_repository_finds_students_by_last_name() -> None:
     assert found_students == [ana, juan]
 
 
-def test_repository_empty_list_when_last_name_is_not_found() -> None:
-    repository = InMemoryStudentRepository()
+def test_repository_empty_list_when_last_name_is_not_found(
+    repository: InMemoryStudentRepository,
+) -> None:
     student = Student(
         student_id=1,
         first_name="Ana",
@@ -138,8 +142,10 @@ def test_repository_empty_list_when_last_name_is_not_found() -> None:
     assert found_students == []
 
 
-def test_in_memory_repository_satisfies_protocol() -> None:
-    repository: StudentRepository = InMemoryStudentRepository()
+def test_in_memory_repository_satisfies_protocol(
+    repository: InMemoryStudentRepository,
+) -> None:
+    student_repository: StudentRepository = repository
     student = Student(
         student_id=1,
         first_name="Ana",
@@ -147,13 +153,14 @@ def test_in_memory_repository_satisfies_protocol() -> None:
         email="ana.garcia@example.com",
     )
 
-    repository.save(student)
+    student_repository.save(student)
 
-    assert repository.find_by_id(1) == student
+    assert student_repository.find_by_id(1) == student
 
 
-def test_repository_rejects_update_for_nonexistent_student() -> None:
-    repository: StudentRepository = InMemoryStudentRepository()
+def test_repository_rejects_update_for_nonexistent_student(
+    repository: InMemoryStudentRepository,
+) -> None:
     student = Student(
         student_id=999,
         first_name="Ana",
@@ -167,8 +174,9 @@ def test_repository_rejects_update_for_nonexistent_student() -> None:
     assert repository.find_all() == []
 
 
-def test_repository_deletes_existing_student() -> None:
-    repository: StudentRepository = InMemoryStudentRepository()
+def test_repository_deletes_existing_student(
+    repository: InMemoryStudentRepository,
+) -> None:
     student = Student(
         student_id=1,
         first_name="Ana",
@@ -182,9 +190,9 @@ def test_repository_deletes_existing_student() -> None:
     assert repository.find_by_id(1) is None
 
 
-def test_repository_rejects_delete_for_nonexistent_student() -> None:
-    repository: StudentRepository = InMemoryStudentRepository()
-
+def test_repository_rejects_delete_for_nonexistent_student(
+    repository: InMemoryStudentRepository,
+) -> None:
     with pytest.raises(ValueError, match="Student with id 999 does not exist"):
         repository.delete(999)
 
