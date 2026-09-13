@@ -66,3 +66,7 @@ class StudentService:
         """Delete an existing student."""
         self.get_student_by_id(student_id)
         self._repository.delete(student_id)
+
+    def find_students_by_last_name(self, last_name: str) -> list[Student]:
+        """Return students with the given last name."""
+        return self._repository.find_by_last_name(last_name)

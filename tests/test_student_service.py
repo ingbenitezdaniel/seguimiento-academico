@@ -219,3 +219,45 @@ def test_service_rejects_delete_for_nonexistent_student(
         service.delete_student(999)
 
     assert repository.find_all() == []
+
+
+def test_service_find_students_by_last_name(
+    service: StudentService,
+) -> None:
+    ana = service.register_student(
+        student_id=1,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+    juan = service.register_student(
+        student_id=2,
+        first_name="Juan",
+        last_name="Garcia",
+        email="juan.garcia@example.com",
+    )
+    service.register_student(
+        student_id=3,
+        first_name="Maria",
+        last_name="Perez",
+        email="maria.perez@example.com",
+    )
+
+    found_students = service.find_students_by_last_name("Garcia")
+
+    assert found_students == [ana, juan]
+
+
+def test_service_returns_empty_list_when_last_name_is_not_found(
+    service: StudentService,
+) -> None:
+    service.register_student(
+        student_id=1,
+        first_name="Ana",
+        last_name="Garcia",
+        email="ana.garcia@example.com",
+    )
+
+    found_students = service.find_students_by_last_name("Perez")
+
+    assert found_students == []
