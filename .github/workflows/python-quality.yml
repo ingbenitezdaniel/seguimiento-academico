@@ -13,6 +13,9 @@ jobs:
   quality:
     runs-on: ubuntu-24.04
 
+    env:
+      POSTGRES_PASSWORD: ci-only-password
+
     steps:
       - name: Get repository code
         uses: actions/checkout@v6
@@ -34,5 +37,12 @@ jobs:
       - name: Check types
         run: python -m mypy src tests
 
+      - name: Start PostgreSQL
+        run: docker compose up -d --wait --wait-timeout 60 db
+
       - name: Run tests
         run: python -m pytest
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker compose down -v
