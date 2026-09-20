@@ -1,0 +1,25 @@
+name: academic-tracking-dev
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: academic_tracking
+      POSTGRES_USER: academic_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - type: bind
+        source: ./sql
+        target: /docker-entrypoint-initdb.d
+        read_only: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U academic_user -d academic_tracking"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
