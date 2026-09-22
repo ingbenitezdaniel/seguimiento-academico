@@ -4,11 +4,11 @@ services:
   db:
     image: postgres:17
     environment:
-      POSTGRES_DB: academic_tracking
-      POSTGRES_USER: academic_user
+      POSTGRES_DB: ${POSTGRES_DB:-academic_tracking}
+      POSTGRES_USER: ${POSTGRES_USER:-academic_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
-      - "127.0.0.1:55432:5432"
+      - "${POSTGRES_HOST:-127.0.0.1}:${POSTGRES_PORT:-55432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - type: bind
@@ -16,7 +16,10 @@ services:
         target: /docker-entrypoint-initdb.d
         read_only: true
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U academic_user -d academic_tracking"]
+      test: [
+        "CMD-SHELL",
+        "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+      ]
       interval: 5s
       timeout: 3s
       retries: 10

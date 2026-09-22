@@ -1,5 +1,5 @@
-import os
 from collections.abc import Iterator
+from dataclasses import replace
 from typing import Any
 
 import psycopg
@@ -7,6 +7,7 @@ import pytest
 from dotenv import load_dotenv
 from psycopg import Connection
 
+from academic_tracking.config import DatabaseSettings
 from academic_tracking.postgres_student_repository import (
     PostgresStudentRepository,
 )
@@ -21,19 +22,26 @@ def repository() -> InMemoryStudentRepository:
 
 
 @pytest.fixture
-def postgres_connection() -> Iterator[Connection[Any]]:
-    """Provide a Postgres connection and roll back test changes."""
+def postgres_settings() -> DatabaseSettings:
+    """Return PostgreSQL settings for the test database."""
     load_dotenv()
-    password = os.getenv("POSTGRES_PASSWORD")
-    if not password:
-        raise RuntimeError("Set POSTGRES_PASSWORD in .env before running tests")
-
-    connection = psycopg.connect(
-        host="127.0.0.1",
-        port=55432,
+    return replace(
+        DatabaseSettings.from_environment(),
         dbname="academic_tracking_test",
-        user="academic_user",
-        password=password,
+    )
+
+
+@pytest.fixture
+def postgres_connection(
+    postgres_settings: DatabaseSettings,
+) -> Iterator[Connection[Any]]:
+    """Provide a Postgres connection and roll back test changes."""
+    connection = psycopg.connect(
+        host=postgres_settings.host,
+        port=postgres_settings.port,
+        dbname=postgres_settings.dbname,
+        user=postgres_settings.user,
+        password=postgres_settings.password,
     )
 
     try:
