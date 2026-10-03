@@ -370,3 +370,23 @@ def test_main_composes_service_and_runs_cli(
     assert exit_code == 0
     assert captured.out == "No students found.\n"
     assert captured.err == ""
+
+
+def test_main_help_does_not_load_database_settings(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def fail_if_settings_are_loaded() -> None:
+        pytest.fail("help must not load database settings")
+
+    monkeypatch.setattr(
+        DatabaseSettings,
+        "from_environment",
+        fail_if_settings_are_loaded,
+    )
+
+    with pytest.raises(SystemExit) as captured_exit:
+        cli.main(["--help"])
+
+    assert captured_exit.value.code == 0
+    assert "usage:" in capsys.readouterr().out

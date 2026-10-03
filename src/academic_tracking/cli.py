@@ -1,5 +1,5 @@
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from collections.abc import Sequence
 
 from dotenv import load_dotenv
@@ -95,7 +95,11 @@ def run_cli(
     """Run a student command using the provided service."""
     parser = build_parser()
     namespace = parser.parse_args(arguments)
+    return _execute_command(service, namespace)
 
+
+def _execute_command(service: StudentService, namespace: Namespace) -> int:
+    """Execute a student command using the parsed arguments."""
     try:
         if namespace.command == "list":
             _print_students(service.list_students())
@@ -139,8 +143,11 @@ def run_cli(
 
 def main(arguments: Sequence[str] | None = None) -> int:
     """Configure the application and run the command-line interface."""
+    parser = build_parser()
+    namespace = parser.parse_args(arguments)
+
     load_dotenv()
     settings = DatabaseSettings.from_environment()
 
     with open_student_service(settings) as service:
-        return run_cli(service, arguments)
+        return _execute_command(service, namespace)
