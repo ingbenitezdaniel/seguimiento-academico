@@ -2,6 +2,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Sequence
 
+import psycopg
 from dotenv import load_dotenv
 
 from academic_tracking.application import open_student_service
@@ -147,7 +148,19 @@ def main(arguments: Sequence[str] | None = None) -> int:
     namespace = parser.parse_args(arguments)
 
     load_dotenv()
-    settings = DatabaseSettings.from_environment()
 
-    with open_student_service(settings) as service:
-        return _execute_command(service, namespace)
+    try:
+        settings = DatabaseSettings.from_environment()
+    except (RuntimeError, ValueError) as error:
+        print(f"Configuration error: {error}", file=sys.stderr)
+        return 1
+
+    try:
+        with open_student_service(settings) as service:
+            return _execute_command(service, namespace)
+    except psycopg.OperationalError:
+        print(
+            "Database error: unable to complete the operation.",
+            file=sys.stderr,
+        )
+        return 1

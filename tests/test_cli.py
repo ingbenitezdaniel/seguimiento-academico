@@ -1,5 +1,6 @@
 from contextlib import nullcontext
 
+import psycopg
 import pytest
 
 from academic_tracking import cli
@@ -390,3 +391,83 @@ def test_main_help_does_not_load_database_settings(
 
     assert captured_exit.value.code == 0
     assert "usage:" in capsys.readouterr().out
+
+
+def test_main_reports_configuration_error(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(cli, "load_dotenv", lambda: None)
+
+    def fail_to_load_settings() -> DatabaseSettings:
+        raise RuntimeError("Set POSTGRES_PASSWORD before starting the application")
+
+    monkeypatch.setattr(
+        DatabaseSettings,
+        "from_environment",
+        fail_to_load_settings,
+    )
+
+    exit_code = cli.main(["list"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert captured.err == (
+        "Configuration error: Set POSTGRES_PASSWORD before starting the application\n"
+    )
+
+
+def test_main_reports_invalid_port_configuration(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(cli, "load_dotenv", lambda: None)
+    monkeypatch.setenv("POSTGRES_PASSWORD", "test_password")
+    monkeypatch.setenv("POSTGRES_PORT", "invalid")
+
+    exit_code = cli.main(["list"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert captured.err.startswith("Configuration error: ")
+
+
+def test_main_reports_database_connection_error(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    settings = DatabaseSettings(
+        host="database.example",
+        port=5432,
+        dbname="academic_tracking",
+        user="academic_user",
+        password="test_password",
+    )
+
+    monkeypatch.setattr(cli, "load_dotenv", lambda: None)
+    monkeypatch.setattr(
+        DatabaseSettings,
+        "from_environment",
+        lambda: settings,
+    )
+
+    def fail_to_open_service(
+        received_settings: DatabaseSettings,
+    ) -> nullcontext[StudentService]:
+        assert received_settings == settings
+        raise psycopg.OperationalError("connection refused")
+
+    monkeypatch.setattr(
+        cli,
+        "open_student_service",
+        fail_to_open_service,
+    )
+
+    exit_code = cli.main(["list"])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert captured.err == ("Database error: unable to complete the operation.\n")
