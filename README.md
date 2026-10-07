@@ -240,6 +240,10 @@ No students found.
 Handled error messages are written to stderr. Other PostgreSQL error types
 are not currently handled by the CLI and may display a traceback.
 
+Handled PostgreSQL operational errors are also logged to stderr at ERROR level.
+Log output includes the logger name and the exception traceback to support
+diagnosis. Logs are not saved to a file.
+
 ## Tests and code quality
 
 Install the development dependencies and activate the virtual environment
@@ -299,5 +303,4 @@ python -m ruff format .
 
 - Schema changes are not managed through a migration tool.
 - CLI database error handling currently covers psycopg.OperationalError.
-- Technical details of handled database errors are not logged.
 - Course, enrollment, and academic progress features are still planned.

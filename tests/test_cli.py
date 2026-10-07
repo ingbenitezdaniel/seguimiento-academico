@@ -1,3 +1,4 @@
+import logging
 from contextlib import nullcontext
 
 import psycopg
@@ -437,6 +438,7 @@ def test_main_reports_invalid_port_configuration(
 def test_main_reports_database_connection_error(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     settings = DatabaseSettings(
         host="database.example",
@@ -465,9 +467,18 @@ def test_main_reports_database_connection_error(
         fail_to_open_service,
     )
 
-    exit_code = cli.main(["list"])
+    with caplog.at_level(logging.ERROR, logger="academic_tracking.cli"):
+        exit_code = cli.main(["list"])
 
     captured = capsys.readouterr()
     assert exit_code == 1
     assert captured.out == ""
     assert captured.err == ("Database error: unable to complete the operation.\n")
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.name == "academic_tracking.cli"
+    assert record.levelno == logging.ERROR
+    assert record.getMessage() == "Database operation failed."
+    assert record.exc_info is not None
+    assert isinstance(record.exc_info[1], psycopg.OperationalError)
+    assert str(record.exc_info[1]) == "connection refused"
