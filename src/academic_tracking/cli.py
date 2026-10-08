@@ -1,3 +1,4 @@
+import logging
 import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Sequence
@@ -10,6 +11,8 @@ from academic_tracking.config import DatabaseSettings
 from academic_tracking.exceptions import StudentNotFoundError
 from academic_tracking.student import Student
 from academic_tracking.student_service import StudentService
+
+logger = logging.getLogger(__name__)
 
 
 def _format_student(student: Student) -> str:
@@ -147,6 +150,11 @@ def main(arguments: Sequence[str] | None = None) -> int:
     parser = build_parser()
     namespace = parser.parse_args(arguments)
 
+    logging.basicConfig(
+        level=logging.ERROR,
+        format="%(levelname)s | %(name)s | %(message)s",
+    )
+
     load_dotenv()
 
     try:
@@ -159,6 +167,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
         with open_student_service(settings) as service:
             return _execute_command(service, namespace)
     except psycopg.OperationalError:
+        logger.exception("Database operation failed.")
         print(
             "Database error: unable to complete the operation.",
             file=sys.stderr,
